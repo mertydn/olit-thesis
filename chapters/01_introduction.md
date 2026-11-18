@@ -68,3 +68,7 @@ The remainder of this thesis is structured as follows:
 - **[Chapter 2 (Background and Related Work)](./02_background.md):** Reviews the Galaxy computational model, the evolution of autonomous AI agents in science, the technical foundations of client-side browser computing and related scientific agent platforms.
 - **[Chapter 3 (System Design and Methodology)](./03_architecture.md):** Details the architecture of Olit, including UI-worker decoupling, the Skills router, visual analytics integration and session resumability.
 - **Chapter 4 (Hands-on Case Study and Walkthrough):** Documents a complete experimental demonstration across sequential phases, analyzing intermediate artifacts, interactive parameter adjustments and final scientific report generation.
+
+---
+
+[← Back to Main (README)](../README.md) | [Next: Chapter 2 →](./02_background.md)

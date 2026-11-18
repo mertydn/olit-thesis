@@ -98,3 +98,7 @@ Chat interfaces are not well-suited for long-term scientific record-keeping. To 
 - **Execution Tracking:** The approved plan is documented as a live Markdown checklist. As jobs finish, the agent updates the status of each step, marking them as complete (`- [x]`) or failed (`- [!]`).
 - **Persistent Dataset Linking:** To guarantee exact reproducibility, datasets are referenced using both their simple UI numbers (HIDs) and their permanent, unique internal Galaxy identifiers.
 - **Embedding Visualizations:** Interactive charts and figures generated during the session are directly embedded into the page using `{{artifact}}` tags. This turns the session into a clean, shareable summary of the entire workflow.
+
+---
+
+[← Previous: Chapter 2](./02_background.md) | [Main (README)](../README.md) | [Bibliography →](../README.md#bibliography)

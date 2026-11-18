@@ -2,7 +2,7 @@
 
 ## 2.1 The Galaxy Scientific Computing Model
 
-Galaxy is one of the most widely used open-source workflow platforms in the life sciences, serving tens of thousands of researchers through large public servers like usegalaxy.eu [4]. The platform is built around a few core concepts designed to ensure that scientific analyses remain transparent and reproducible:
+Galaxy is one of the most widely used open-source workflow platforms in the life sciences, serving tens of thousands of researchers through large public servers like usegalaxy.eu [[4]](../README.md#bibliography). The platform is built around a few core concepts designed to ensure that scientific analyses remain transparent and reproducible:
 
 ### 2.1.1 Histories, Datasets, and Provenance Graphs
 
@@ -80,3 +80,7 @@ Browser memory is temporary: refreshing a page or closing a tab usually clears a
 ## 2.6 Security, Safety, and Privacy in Scientific AI
 
 ### 2.6.1 Client-Side Credential Isolation
+
+---
+
+[← Previous: Chapter 1](./01_introduction.md) | [Main (README)](../README.md) | [Next: Chapter 3 →](./03_architecture.md)

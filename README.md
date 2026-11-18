@@ -1,124 +1,55 @@
-# olit-thesis
+# Olit: A Browser-Native Autonomous AI Co-Scientist for the Galaxy Bioinformatics Platform
 
-Orbit Lite (Olit) is an AI research assistant built directly into the Galaxy platform. It allows researchers to analyze data, run tools, build charts, and document experiments using plain language.
-
----
-
-## 1. Orbit vs. Olit
-
-Galaxy provides two complementary AI assistants within its ecosystem:
-
-* **Orbit** lives in the Galaxy core, operating with full system-level access and broader backend capabilities.
-* **Olit** lives entirely in the browser, providing an instant assistant directly inside the web interface.
-
-Throughout this document, Orbit Lite is referred to simply as **Olit**.
+**Master's Thesis Draft**  
+**Author:** Ali Mert Aydın  
+**Institution:** Universität Freiburg / Bioinformatics  
+**Date:** November 2026
 
 ---
 
-## 2. Execution Environments
-Orbit and Olit use fundamentally different execution models:
+## Abstract
 
-* **Orbit uses Linux and Bash:** It operates on a standard Linux environment with full command-line terminal access. It can install packages, run shell scripts, and execute tasks outside Galaxy.
-* **Olit uses Galaxy and Pyodide:** It has no operating system or terminal access. It interacts with data strictly through Galaxy APIs and runs Python in the browser via Pyodide.
+Galaxy is widely used to analyze large volumes of biological data. Despite the wide range of tools available through its community, using these resources can be challenging for biologists without a computational background. Combining tools into multi-step workflows, selecting appropriate parameters and resolving errors often requires experience with bioinformatics and programming. Large Language Models (LLMs) offer a possible way to make these tasks more accessible. However, many existing AI agents operate on remote servers and rely on system-level access, such as root privileges and shell environments. This raises practical concerns about computational costs, container management, and the handling of sensitive data.
 
-### Key Implications:
-1. **Olit Cannot Patch Missing Galaxy Features:** If a tool, dependency, or reference genome is missing on the Galaxy server, Olit cannot install it.
-2. **Highlighting Gaps in Galaxy:** Because Olit cannot work around missing capabilities using system commands, it directly exposes what Galaxy lacks. This makes Olit a valuable tool for uncovering Galaxy's gaps.
-3. **Pyodide Limitations:**
-   * **Lightweight Only:** Browser-based Python handles only basic data checks, column filtering, and quick math.
-   * **Browser Sandbox:** It has no access to local files and operates under standard browser security.
-   * **Heavy Science Stays in Galaxy:** All heavy computational workloads must run as real Galaxy tools, not in the browser.
+Within the Galaxy ecosystem, Orbit was developed as an AI co-scientist that operates as a server-side agent. Unlike Orbit, this thesis presents Olit, an AI co-scientist that runs entirely within the user's web browser and integrates directly into the Galaxy web interface. By operating client-side, Olit makes use of the user's existing Galaxy session without requiring dedicated server infrastructure, keeping API credentials and execution locally in the browser.
+
+Olit is designed to keep users involved in the analysis process. It follows a Plan First, Run Second approach: before any jobs are submitted to Galaxy, the agent proposes a workflow and its associated parameters, which the user can review and approve. An on-demand Skills Router provides the agent with relevant technical knowledge when required, rather than loading all available information into the context window at once. Olit also integrates with Galaxy Charts to support interactive data visualization and can generate shareable Galaxy Pages that document the analysis and its results.
+
+The thesis describes Olit's architecture and implementation, examines the trade-offs between browser-based and server-side AI agents, and evaluates the system through a case study involving biological data exploration.
 
 ---
 
-## 3. Resumability
+## Table of Contents
 
-Because the browser owns the agent, Olit provides automatic session recovery across devices:
-
-```mermaid
-flowchart TD
-    A["Open Olit on a Galaxy history"]
-    B{"Conversation in this browser?"}
-    C["Restore full conversation"]
-    D["Start new conversation"]
-    E{"Existing notebook in Galaxy?"}
-    F["Use existing notebook"]
-    G["Create new notebook"]
-    H["Work with Olit"]
-    I{"Save conversation?"}
-    J["Saved conversation in Galaxy"]
-    K["Conversation remains in this browser"]
-    A --> B
-    B -->|Yes| C
-    B -->|No| D
-    D --> E
-    E -->|Yes| F
-    E -->|No| G
-    C --> H
-    F --> H
-    G --> H
-    H --> I
-    I -->|Yes| J
-    I -->|No| K
-    J -.->|"Open on any device"| C
-    K -.->|"Reopen in same browser"| C
-```
-
-* **Same Browser:** If you reopen the tab, the conversation history is immediately restored from local browser storage.
-* **Across Devices:** If you save the conversation, Galaxy stores it as a visualization object that can be reopened from any machine.
-* **Notebook Persistence:** Starting a new conversation automatically reconnects to an existing Galaxy notebook if one is already attached to that history.
+1. **[Chapter 1: Introduction](./chapters/01_introduction.md)**
+   - [1.1 The Computational Dilemma in Modern Bioinformatics](./chapters/01_introduction.md#11-the-computational-dilemma-in-modern-bioinformatics)
+   - [1.2 Autonomous AI Agents](./chapters/01_introduction.md#12-autonomous-ai-agents)
+   - [1.3 The Galaxy AI Ecosystem: Orbit and Orbit Lite](./chapters/01_introduction.md#13-the-galaxy-ai-ecosystem-orbit-and-orbit-lite)
+   - [1.4 Problem Statement and Research Objectives](./chapters/01_introduction.md#14-problem-statement-and-research-objectives)
+   - [1.5 Summary of Contributions](./chapters/01_introduction.md#15-summary-of-contributions)
+   - [1.6 Thesis Organization](./chapters/01_introduction.md#16-thesis-organization)
+2. **[Chapter 2: Background and Related Work](./chapters/02_background.md)**
+   - [2.1 The Galaxy Scientific Computing Model](./chapters/02_background.md#21-the-galaxy-scientific-computing-model)
+   - [2.2 LLMs and Autonomous Agents in Bioinformatics](./chapters/02_background.md#22-llms-and-autonomous-agents-in-bioinformatics)
+   - [2.3 Where Does the Agent Live?](./chapters/02_background.md#23-where-does-the-agent-live)
+   - [2.4 System-Level vs. Platform-Bound AI Architectures: Orbit vs. Olit](./chapters/02_background.md#24-system-level-vs-platform-bound-ai-architectures-orbit-vs-olit)
+   - [2.5 Browser-Side Computing](./chapters/02_background.md#25-browser-side-computing)
+   - [2.6 Security, Safety, and Privacy in Scientific AI](./chapters/02_background.md#26-security-safety-and-privacy-in-scientific-ai)
+3. **[Chapter 3: System Design and Methodology](./chapters/03_architecture.md)**
+   - [3.1 System Architectural Overview](./chapters/03_architecture.md#31-system-architectural-overview)
+   - [3.2 Human-in-the-Loop](./chapters/03_architecture.md#32-human-in-the-loop)
+   - [3.3 The Dynamic Skills Knowledge Architecture](./chapters/03_architecture.md#33-the-dynamic-skills-knowledge-architecture)
+   - [3.4 Data Visualization and Interactive Analytics](./chapters/03_architecture.md#34-data-visualization-and-interactive-analytics)
+   - [3.5 Session Resumability and Automated Notebooks](./chapters/03_architecture.md#35-session-resumability-and-automated-notebooks)
+4. **[Bibliography](#bibliography)**
 
 ---
 
-## 4. How It Works
+## Bibliography
 
-Olit ensures you retain full control over your analysis:
-
-1. **Step-by-Step Plan:** Olit proposes a concrete plan listing tools and parameters before executing anything.
-2. **User Review:** You can review, adjust, or approve the proposal.
-3. **Execution on Approval:** Galaxy tools are submitted only after explicit confirmation.
-4. **Progress Tracking:** Olit tracks job completion in the background and reports results.
-
----
-
-## 5. Key Capabilities
-
-* **Run Galaxy Tools:** Discovers installed tools, configures inputs, and executes jobs.
-* **Run Workflows:** Imports and runs verified community workflows.
-* **Import Public Data:** Downloads sequencing data from public archives like ENA by accession number.
-* **Consult Tutorials:** Reads Galaxy Training Network tutorials to follow verified scientific protocols.
-* **Organize Histories:** Groups, renames, and tags datasets.
-
----
-
-## 6. Visualizations and Charts
-
-* **Built-in Galaxy Viewers:** Opens dedicated Galaxy visualizers (such as genome browsers or molecular viewers) with pre-loaded data.
-* **Custom Charts:** Generates interactive bar charts, scatter plots, and heatmaps for tabular data directly in the side panel.
-* **Save vs. Preview:** Lets you preview charts temporarily or save them permanently to your Galaxy account.
-
----
-
-## 7. Built-in Skills
-
-Instead of guessing platform conventions, Olit references built-in skills:
-* **Specific Knowledge:** Covers chart configuration, collection management, and notebook formatting.
-* **Loaded on Demand:** Consulted only when a matching task begins.
-* **Fixed Rules:** Locked into the package in advance to guarantee predictable behavior.
-
----
-
-## 8. Lab Records
-
-Chat conversations can easily be lost. Olit automatically maintains a permanent Galaxy Page for every project:
-* **The Plan:** Records the approved goals and parameters.
-* **The Execution:** Logs the tools used, marking completed steps with checkmarks.
-* **The Output:** Embeds generated charts directly into the document.
-* **Durable Deliverable:** Leaves behind a complete and shareable scientific notebook at the end of every session.
-
----
-
-## 9. Safety and Governance
-
-* **Destructive Action Warnings:** Prompts for explicit confirmation before deleting datasets or canceling workflows.
-* **Reproducible Computations:** Performs all scientific transformations through real Galaxy tools with full provenance tracking.
+1. **Bran, A. M., Cox, S., Schilter, O., Baldassari, C., White, A. D., & Schwaller, P.** (2023). ChemCrow: Augmenting large-language models with chemistry tools. *arXiv preprint arXiv:2304.05376*.
+2. **Di Tommaso, P., Chatzou, M., Floden, E. W., Barja, P. P., Palumbo, E., & Notredame, C.** (2017). Nextflow enables reproducible computational analysis. *Nature Biotechnology*, 35(4), 316–319.
+3. **Droettboom, M., et al.** (2018). Pyodide: Bringing the Python scientific stack to the browser. In *SciPy Conference*.
+4. **Goecks, J., Nekrutenko, A., & Taylor, J.** (2010). Galaxy: a comprehensive approach for supporting accessible, reproducible, and transparent computational research in the life sciences. *Genome Biology*, 11(8), R86.
+5. **Haas, A., Rossberg, A., Schuff, D. L., Titzer, B. L., Holman, M., Gohman, D., Wagner, L., Zakai, A., & Bastien, J. F.** (2017). Bringing the web up to speed with WebAssembly. *ACM SIGPLAN Notices*, 52(6), 185–200.
+6. **Jin, Q., Yang, Y., Chen, Q., & Lu, Z.** (2024). GeneGPT: Augmenting large language models with domain tools for improved access to biomedical information. *Bioinformatics*, 40(2), btae075.
