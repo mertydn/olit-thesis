@@ -1,4 +1,4 @@
-# olit-guide
+# olit-thesis
 
 Orbit Lite (Olit) is an AI research assistant built directly into the Galaxy platform. It allows researchers to analyze data, run tools, build charts, and document experiments using plain language.
 
