@@ -64,7 +64,7 @@ However, despite its user-friendly interface and a repository of over 10,000 too
 2. **Parameter Complexity:** Bioinformatics software typically exposes dozens of sensitive parameters, such as mismatch penalties or statistical thresholds. Choosing inappropriate settings can silently bias or invalidate downstream results.
 3. **Workflow Assembly and Troubleshooting:** Linking different analytical steps together requires a solid grasp of data formats (e.g., FASTQ, BAM, VCF) and file transformations. When a tool fails, diagnosing the underlying issue is often difficult without command-line experience.
 
-As a result, researchers often have to rely heavily on specialized bioinformatics core facilities, which can slow down the pace of discovery.
+As a result, researchers often have to rely heavily on dedicated bioinformaticians, which can slow down the pace of discovery.
 
 ### 1.2 Autonomous AI Agents
 
@@ -95,23 +95,23 @@ Driven by this premise, the primary research question is:
 
 > *"How reliably can a browser-native AI agent prepare and visualize scientific data using Galaxy, and what practical limitations and architectural improvements emerge from a systematic evaluation?"*
 
-To answer this research question, the study is structured across three core investigative phases. First, we explore the client-side Web Worker runtime and in-browser Python execution, examining how the agent can inherit the user's existing session authentication and interact directly with the Galaxy REST API without requiring dedicated backend containers. Second, we evaluate how effectively the agent maps complex dataset columns to declarative visualization schemas (`galaxy-charts`), systematically identifying canonical failure modes and formulating automated self-correction routines. Finally, we assess the agent's ability to use local Python execution to clean malformed tabular data and calculate basic scientific metrics directly in the browser, avoiding the clutter of trivial data-wrangling jobs in the user's main Galaxy history.
+To answer this research question, the study is structured across three core investigative phases. First, we explore the client-side Web Worker runtime and in-browser Python execution, examining how the agent can inherit the user's existing session authentication and interact directly with the Galaxy REST API without requiring dedicated backend containers. Second, we evaluate how effectively the agent maps complex dataset columns to declarative visualization schemas (`galaxy-charts`), systematically identifying canonical failure modes and formulating automated self-correction routines. Finally, we assess the agent's ability to use local Python execution to reshape tabular data to meet user-defined output criteria and calculate basic scientific metrics directly in the browser, avoiding the clutter of trivial data-wrangling jobs in the user's main Galaxy history.
 
-To achieve these goals, the thesis sets out four specific technical objectives:
+To address these research questions, the thesis sets out four primary technical and evaluative objectives:
 
-- **O1. Runtime Design:** The system must maintain conversational memory across page reloads and operate strictly without requiring dedicated backend compute containers.
-- **O2. User-Controlled Execution:** Implement a *Plan First, Run Second* protocol to keep the human in the loop. This ensures that the agent cannot execute workflows or perform actions without user approval, keeping all parameter choices fully transparent.
-- **O3. On-Demand Skill Retrieval:** Create a modular *Skills* system that feeds the agent verified technical instructions only when needed. This approach prevents hallucinations, while also securing the system against prompt injection.
-- **O4. Systematic Empirical Evaluation:** Establish a scenario-driven evaluation suite to benchmark Olit's interactive visual analytics, measuring schema compliance, column binding accuracy, error recovery loops, and the effectiveness of in-browser data preparation across biological datasets.
+- **O1. Characterization of the Browser-Native Runtime:** Investigate the operational boundaries of a client-side execution model, examining how Web Workers, in-browser WebAssembly Python (Pyodide), and local browser storage maintain conversational state and execute data tasks without backend compute containers.
+- **O2. Evaluation of Human-in-the-Loop Governance:** Assess the *Plan First, Run Second* protocol to determine how effectively explicit approval gates, parameter transparency, and human oversight mitigate unauthorized tool execution and destructive actions in scientific workflows.
+- **O3. Verification of Skill Retrieval and Tool Orchestration:** Systematically evaluate the modular *Skills* architecture, measuring the agent's ability to retrieve, interpret, and accurately execute on-demand procedural instructions (e.g., data enrichment, Vega-Lite compilation, and Charts skills) without hallucination or tool misbinding.
+- **O4. Scenario-Driven Empirical Benchmarking:** Design and implement an automated, multi-turn evaluation suite based on realistic bioinformatics workflows to quantitatively benchmark schema compliance, column-binding accuracy, error recovery loops, and performance boundaries across live Galaxy platforms.
 
 ### 1.5 Summary of Contributions
 
-The primary contributions described in this thesis are as follows:
+The primary contributions of this thesis are as follows:
 
-- **Olit Architectural Framework:** We present the design of Olit, the first browser-native AI co-scientist for Galaxy, demonstrating that multi-turn workflow planning and execution can be realized within client-side Web Workers.
-- **Comparative Architectural Analysis:** We articulate the distinct operational boundaries between system-level agents (Orbit) and platform-bound agents (Olit), demonstrating how Olit's architectural boundaries intentionally expose missing features in Galaxy core.
-- **Dynamic Skills Architecture for Visual Analytics:** We describe Olit's on-demand skills routing mechanism, showing how practical instructions for Vega-Lite charting and Galaxy Charts are loaded only when needed without filling up the context window.
-- **Evaluation of Interactive Visual Analytics:** We design an evaluation framework based on realistic scenarios to test Olit's visual analytics capabilities. We measure how accurately the agent maps data columns, how well it recovers when schema errors occur, how it prepares data locally, and where browser-based agents reach their practical limits.
+- **Browser-Native Agent Architecture:** We analyze the design of Olit, showing how an autonomous AI co-scientist can operate directly inside client-side Web Workers without server-side compute containers.
+- **System vs. Platform-Bound Agent Comparison:** We compare the trade-offs between system-level agents (Orbit) and browser-based agents (Olit), identifying the security and accessibility advantages of running within a browser sandbox.
+- **Evaluation of Skill-Based Visual Analytics:** We test how effectively the agent uses modular skills to generate interactive Vega-Lite charts, persist Galaxy Charts visualizations, and perform in-browser data preparation.
+- **Scenario-Based Evaluation Framework:** We design and implement realistic, multi-turn evaluation scenarios to benchmark the agent on live Galaxy infrastructure.
 
 ### 1.6 Thesis Organization
 
