@@ -363,21 +363,15 @@ To ensure scientific reproducibility, Olit follows the **Scientific Provenance P
 
 ```mermaid
 flowchart TD
-    Start["User Opens Olit on History"] --> CheckLocal{"Local Browser Storage (OPFS SQLite) contains session?"}
-    CheckLocal -->|"YES"| Restore["Restore Full Conversation Transcript Immediately"]
-    CheckLocal -->|"NO"| CheckServer["Check Galaxy Server for Attached History Notebook"]
-    CheckServer --> CheckNB{"Existing Notebook Found in History?"}
-    CheckNB -->|"YES"| Attach["Attach to Existing Notebook, Resume Analysis State"]
-    CheckNB -->|"NO"| Fresh["Initialize New Conversation and Create Fresh Notebook"]
-    Restore --> Work["Active Work and Iterative Analysis"]
-    Attach --> Work
+    Start["Open Olit on History"] --> Check{"Existing Session?"}
+    Check -->|"Yes"| Resume["Restore Previous Session & Notebook"]
+    Check -->|"No"| Fresh["Start Fresh Analysis"]
+    Resume --> Work["Interactive Analysis & Execution"]
     Fresh --> Work
-    Work --> CheckSave{"User Saves Session?"}
-    CheckSave -->|"YES"| Serialize["Serialize Session to Galaxy Visualization Object (Shareable)"]
-    CheckSave -->|"NO"| LocalCache["Session Persists Securely in Local Browser Cache"]
+    Work --> Save["Persist State (Local Cache / Galaxy Visualization)"]
 ```
 
-*Figure 3.2: Decision tree for Olit session resumption across browser tabs, local storage, and Galaxy server instances.*
+*Figure 3.2: Session lifecycle and resumption workflow in Olit.*
 
 Because the browser runtime owns the agent execution state, Olit implements a multi-tiered session recovery mechanism:
 - **Cross-Device Portability:** Users can serialize an active session into a persistent Galaxy Visualization object. This enables researchers to share interactive analytical sessions with collaborators across independent machines.
