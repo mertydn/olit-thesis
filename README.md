@@ -271,7 +271,61 @@ Biological datasets frequently contain uncurated user annotations, FASTA headers
 
 ### 3.1 System Architectural Overview
 
-Olit is designed with a clear separation between the user interface and the AI's decision-making logic. Figure 3.1 outlines the system architecture, illustrating the strict boundary between the local browser environment and the remote Galaxy server.
+Olit operates within a multi-tiered architecture that integrates client-side browser execution with the broader Galaxy ecosystem. Figure 3.1 illustrates this macro-level topology, mapping the interactions between the Galaxy visualization framework, operation engines, agent runtimes (Orbit and Olit), shared skills, and the evaluation benchmark harness.
+
+```mermaid
+flowchart TB
+    subgraph GalaxyCore["1. Galaxy & Visualization Framework"]
+        Galaxy["Galaxy Server (REST API)"]
+        Charts["Galaxy Visualizations"]
+        Plugins["Display Plugins (Plotly, NGL, IGV)"]
+        Galaxy --> Charts --> Plugins
+    end
+
+    subgraph Operations["2. Operation Engine & MCP"]
+        MCP["galaxy-mcp"]
+        Ops["@galaxyproject/galaxy-ops"]
+        MCP -.->|"Shares operations"| Ops
+        Ops -->|"Direct REST Calls"| Galaxy
+    end
+
+    subgraph Agents["3. Agent Runtimes"]
+        Orbit["Orbit"]
+        Olit["Olit"]
+        Charts -->|"Delivered as Plugin"| Olit
+        Orbit -->|"In-process"| Ops
+        Olit -->|"In-process"| Ops
+    end
+
+    subgraph Skills["4. Skills Ecosystem"]
+        GSkills["galaxy-skills"]
+        OSkills["Olit Skills"]
+        GSkills -->|"Build-time sync"| OSkills
+        OSkills -->|"On-demand routing"| Olit
+        GSkills --> Orbit
+    end
+
+    subgraph VizTools["5. Olit Visualization Tools"]
+        SaveViz["save_visualization"]
+        Vega["vega_dataset"]
+        Olit --> SaveViz & Vega
+        SaveViz --> Plugins
+        Vega -->|"Client-side spec"| Galaxy
+    end
+
+    subgraph Evals["6. Evaluation Harness"]
+        Scenarios["Evaluation Scenarios"]
+        Scenarios -->|"Evaluates against"| Olit
+    end
+```
+
+*Figure 3.1: Macro-level architecture and integration topology of the Galaxy AI ecosystem.*
+
+#### 3.1.1 Delivery Model and Component Decomposition
+
+Olit is packaged and delivered as a standard Galaxy visualization plugin conforming to the `galaxy-charts` framework. Rather than running as a standalone service or requiring administrative server-side installation, Olit embeds directly inside an iframe within the Galaxy web interface when a user launches the visualization from a history or dataset.
+
+At the client level, Olit is designed with a clear separation between the user interface and the agent's background decision-making logic. Figure 3.2 outlines this internal architectural decomposition, illustrating the strict boundary between the local browser environment and the remote Galaxy server.
 
 ```mermaid
 flowchart TD
@@ -295,9 +349,7 @@ flowchart TD
     Engine <-->|"Authenticated REST APIs using Session Cookies"| API
 ```
 
-*Figure 3.1: Architectural decomposition of Olit, demonstrating client-side execution over remote Galaxy server infrastructure.*
-
-#### 3.1.1 UI Shell and Agent Engine
+*Figure 3.2: Architectural decomposition of Olit, demonstrating client-side execution over remote Galaxy server infrastructure.*
 
 The codebase comprises two primary subsystems:
 
@@ -313,6 +365,18 @@ This integration works in both directions:
 - **Native Table Counting and Aggregation:** Adapting tabular data consumption so that column indexing respects Galaxy's 1-based indexing while delegating statistical aggregations directly to client-side Vega-Lite engines;
 - **Interactive Artifact Synchronization:** Ensuring that dynamically synthesized charts and figures update live in the dedicated artifact view pane;
 - **Session Saving and Resumption:** Implementing robust document schemas for saving and restoring multi-turn conversational transcripts as permanent Galaxy visualization objects.
+
+#### 3.1.3 The Shared Operation Layer: @galaxyproject/galaxy-ops and galaxy-mcp
+
+Tool execution across the Galaxy AI ecosystem relies on `@galaxyproject/galaxy-ops`, a shared TypeScript library defining typed operations for interacting with Galaxy's REST API. These operations cover core platform interactions, including dataset retrieval, history inspection, tool parameter configuration, workflow submission, and visualization management.
+
+As shown in Figure 3.1, `@galaxyproject/galaxy-ops` serves as the common execution engine across multiple runtime environments:
+
+1. **In-Process Browser Execution (Olit):** Olit bundles `@galaxyproject/galaxy-ops` directly inside its background Web Worker. Because the Web Worker runs within the user's authenticated browser context, it performs direct REST API requests using ambient session cookies, eliminating the need for manual API key provisioning.
+2. **In-Process Host Execution (Orbit):** The upstream Orbit agent runtime imports `@galaxyproject/galaxy-ops` directly within its Node.js environment on host machines, executing operations via administrative or user-provided Galaxy API keys.
+3. **Model Context Protocol Integration (`galaxy-mcp`):** For external AI clients (such as Claude Desktop or IDE-based agents), `galaxy-mcp` wraps `@galaxyproject/galaxy-ops` inside a standardized MCP server. Instead of rewriting tool definitions, `galaxy-mcp` exposes the identical operational signatures over JSON-RPC.
+
+Sharing this common operational layer guarantees that tool schemas, parameter validation rules, and API endpoints remain uniform across in-browser agents, host-level agents, and third-party MCP integrations.
 
 ### 3.2 Human-in-the-Loop Governance
 
@@ -352,14 +416,16 @@ To guarantee zero network latency during session initialization and completely e
 
 ### 3.4 Interactive Visual Analytics: Galaxy Charts and Vega-Lite
 
-Data exploration in Olit is managed by a dual-pathway architecture implemented in `visualizations.ts` and `vega.ts`:
+Data exploration in Olit is managed by a dual-pathway architecture implemented in `visualizations.ts` and `vega.ts`, exposing two dedicated tools to the agent runtime (Figure 3.1, Subgraph 5):
 
-1. **Galaxy Charts Integration:** For established biological modalities (e.g., BAM alignments in IGV, VCF variants, PDB macromolecular structures), Olit queries installed visualization plugins. It validates parameter bindings against the plugin's schema, rendering native Galaxy visualizers directly in the Artifact Pane.
-2. **Client-Side Vega-Lite Compilation:** When customized statistical charting is requested (e.g., volcano plots, differential expression bar charts, distribution histograms), Olit synthesizes declarative Vega-Lite specifications. Rather than embedding raw data rows into the spec or LLM prompt, the Vega-Lite specification references the dataset URL directly, offloading data streaming, aggregation, and rendering entirely to the browser.
+1. **`save_visualization` (Galaxy Display Plugins):** For established biological modalities, Olit interfaces with Galaxy's native visualization framework. Galaxy maintains a registry of display plugins suited for specific data formats, such as Plotly for interactive statistical charts, IGV for BAM/CRAM genomic alignments, and NGL for PDB 3D macromolecular structures. When invoked, `save_visualization` validates parameter bindings against the target plugin's declarative schema, writes the visualization configuration into Galaxy's registry, and persists it as a permanent history item while rendering the result in Olit's Artifact Pane.
+2. **`vega_dataset` (Client-Side Vega-Lite Compilation):** When custom statistical exploration is needed (e.g., volcano plots, differential expression bar charts, or multi-group distribution boxplots), Olit calls `vega_dataset`. Instead of serializing large tabular datasets into the model's prompt or copying raw rows into the chart definition, `vega_dataset` synthesizes a compact, declarative Vega-Lite specification referencing the dataset's direct streaming endpoint (`/api/datasets/{id}/display`). The browser runtime streams the data, performs client-side aggregations, and renders the interactive visualization locally using Vega-Embed.
 
 To ensure scientific reproducibility, Olit follows the **Scientific Provenance Principle**: if a chart requires a statistical transformation that Vega-Lite cannot handle, the agent never fabricates data points. Instead, it runs an actual Galaxy tool to produce the necessary dataset first, keeping the full history intact.
 
 ### 3.5 Session Resumability and State Persistence
+
+Figure 3.3 illustrates the session lifecycle and resumption workflow in Olit.
 
 ```mermaid
 flowchart TD
@@ -371,7 +437,7 @@ flowchart TD
     Work --> Save["Persist State (Local Cache / Galaxy Visualization)"]
 ```
 
-*Figure 3.2: Session lifecycle and resumption workflow in Olit.*
+*Figure 3.3: Session lifecycle and resumption workflow in Olit.*
 
 Because the browser runtime owns the agent execution state, Olit implements a multi-tiered session recovery mechanism:
 - **Cross-Device Portability:** Users can serialize an active session into a persistent Galaxy Visualization object. This enables researchers to share interactive analytical sessions with collaborators across independent machines.
